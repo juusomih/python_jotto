@@ -1,1 +1,1 @@
-# jotto
+# python_jotto
