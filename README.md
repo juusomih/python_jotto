@@ -6,23 +6,23 @@ The most important character summary tool
 
 M simple main function with solr query functionality 
 
-  Search field 
+    Search field 
 
-  Until break 
+    Until break 
 
  
 
 L search function ---> searches text 
 
-  Take query and search through top result text 
+    Take query and search through top result text 
 
-  XL spacy function --> highlights character names 
+    XL spacy function --> highlights character names 
 
-    S take highlighted character function 
+      S take highlighted character function 
 
-      S count char mentions function 
+        S count char mentions function 
 
-        S if even randomly select name 
+          S if even randomly select name 
 
     L search through chosen char’s wiki page get info function  
 
