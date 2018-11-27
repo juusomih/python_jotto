@@ -5,7 +5,6 @@ The most important character summary tool
 
 
 
-QUESTION: Is it possible to get detail from text or is text just like the small info field provided by Solr?
 
  
 
