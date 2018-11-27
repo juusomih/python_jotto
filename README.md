@@ -1,5 +1,5 @@
 # python_jotto
-
+THE PLAN :
 The most important character summary tool
 
  
@@ -18,11 +18,11 @@ L search function ---> searches text
 
     XL spacy function --> highlights character names 
 
-      S take highlighted character function 
+        S take highlighted character function 
 
-        S count char mentions function 
+          S count char mentions function 
 
-          S if even randomly select name 
+            S if even randomly select name 
 
     L search through chosen char’s wiki page get info function  
 
