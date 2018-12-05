@@ -11,13 +11,18 @@ def split_text(fulltext):
 def cut_out_extra(text_text):
     goodtext = re.split(r"=+.*References.*=+",text_text)
     return goodtext[0]
-    
+
+#replaces whitespaces with a plus
+def addplus(query):
+    fixed = query.replace(" ", "+")
+    return fixed
 
 
 def query():
     query = input("Give query ")
+    
     ##need to fix query to work with proper terms as in "Bill Gates" not Bill,Gates
-    connection = urlopen('http://localhost:8985/solr/wiki/select?q=text:' + query + '&wt=python&start=0&rows=1')
+    connection = urlopen('http://localhost:8985/solr/wiki/select?q=text:(' + addplus(query) + ')&wt=python&start=0&rows=1')
     response = eval(connection.read())
 
     for i, document in enumerate(response['response']['docs']):
@@ -44,7 +49,7 @@ def main():
         actualtext = text_text(text)
 
         #HERE IF NEED TO SEE WHAT TEXT LOOKS LIKE
-        #print(summa)
+        print(summa)
         #print(actualtext)
         
     
