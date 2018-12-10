@@ -1,5 +1,5 @@
-# python_jotto
-Character Summary Tool
+# Character Summary Tool
+
 
 The main program searches through any given English Wikipedia article and returns a 
 short summary of the person with most mentions. Alternatively, the user can directly search for
