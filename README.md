@@ -7,7 +7,7 @@ a person included in English Wikipedia, which would return a summary of the pers
 This is a handy tool for anyone who is looking for basic information about a key person in a
 given English Wikipedia article.
 
-How to run the program:
+# How to run the program:
 
  To run the program, you can start by installing, configuring and running Solr. 
  Download a suitable English Wikipedia dump, and make sure to index it. Solr is expected to be
@@ -18,7 +18,7 @@ How to run the program:
  (https://github.com/miau1/flask-example). Make sure to run Flask in the correct port and access
  the program via localhost:5004/.
 
-Input & output:
+# Input & output:
 
 The expected input is any search term that can be matched to an English Wikipedia article.
 The output includes a name and some key information about a person, such as 
