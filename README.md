@@ -27,7 +27,7 @@ for example, is not available, the output will state that such information could
 
 
 
-THE PLAN :
+# THE PLAN :
 
 The most important character summary tool
 
