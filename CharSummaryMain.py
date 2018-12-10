@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from urllib3 import *
 from flask import Flask, render_template, request, redirect, url_for
 from urllib.request import urlopen
@@ -9,6 +10,7 @@ app = Flask(__name__)
 ender = True
 summarybox = []
 persons = []
+
 nlp = spacy.load('en_core_web_sm')
 app = Flask(__name__)
 
@@ -31,8 +33,8 @@ def addplus(search):  # replaces whitespaces with a plus
 
 def search(text):
 
-    connection = urlopen('http://localhost:8985/solr/wiki/select?q=text:('
-                         + addplus(text) + ')&wt=python&start=0&rows=1')
+    connection = urlopen('http://localhost:8985/solr/wiki/select?q=text:(' +
+                         addplus(text) + ')&wt=python&start=0&rows=1')
     response = eval(connection.read())
 
     for i, document in enumerate(response['response']['docs']):
@@ -64,6 +66,23 @@ def name_counter(fulltext):  # Finds all the names in the text and counts them, 
     return counteddict
 
 
+# adds the top X amount (2) of persons mentioned in a text in to a string
+def add_up_names(namedictionary):
+    names = []  # could be potentionally used for better search results in the second search
+    breaker = 0
+    sixnames = ""
+    for key, value in namedictionary:
+        names.append(key)
+        breaker += 1
+        if (breaker == 2):
+            break
+    for i in names:
+        sixnames += str(i) + " "
+    fix_info(sixnames)
+    print(sixnames)
+    return fix_info(sixnames)
+
+
 # Gets the name of the most mentioned person and returns the name
 def get_important_person(personsdict):
 
@@ -93,7 +112,7 @@ def sort_info(fullsummary):  # Goes through the summary info and parses out want
             died[0] = "Still alive"
         is_none(died[0])
     except:
-        summarybox.append("death date = Still alive")
+        summarybox.append("Could not find a death date")
 
     try:
         spouse = re.search(r"{{marriage.*}}", fullsummary, flags=re.I)
@@ -109,19 +128,24 @@ def sort_info(fullsummary):  # Goes through the summary info and parses out want
 
     return summarybox
 
+# Strips away excess characters for ease of reading
+# this takes a huge dumb on the performance
 
-def fix_info(stringtofix):  # Strips away excess characters for ease of reading
-    stringtofix = re.sub(r"{", "", stringtofix)
-    stringtofix = re.sub(r"}", "", stringtofix)
+
+def fix_info(stringtofix):
+    stringtofix = re.sub(r"{|}", "", stringtofix)
+    #stringtofix = re.sub(r"}", "", stringtofix)
     stringtofix = re.sub(r"(^\| )", "", stringtofix)
     stringtofix = re.sub(r"\|", " ", stringtofix)
-    stringtofix = re.sub(r"\[", "", stringtofix)
-    stringtofix = re.sub(r"\]", "", stringtofix)
-    stringtofix = re.sub(r"<br>", " ", stringtofix)
-    stringtofix = re.sub(r"</br>", " ", stringtofix)
-    stringtofix = re.sub(r"<br/>", " ", stringtofix)
+    stringtofix = re.sub(r"(\[|\]*)", "", stringtofix)
+    #stringtofix = re.sub(r"\]", "", stringtofix)
+    stringtofix = re.sub(r"<.*>", " ", stringtofix)
+    #stringtofix = re.sub(r"</br>", " ", stringtofix)
+    #stringtofix = re.sub(r"<br/>", " ", stringtofix)
     stringtofix = re.sub(r" +", " ", stringtofix)
     stringtofix = re.sub(r"^ +", "", stringtofix)
+    stringtofix = re.sub(r"</ref", "", stringtofix)
+
     return stringtofix
 
 
@@ -134,6 +158,7 @@ def is_none(teststring):
 
 
 def charsum(text):
+
     del summarybox[:]  # important, empties the info box for another search
     del persons[:]
     # try:
@@ -159,28 +184,56 @@ def charsum(text):
     # except IndexError:
     # return "Couldn't find anything useful"
 
-    # {"name": "Title:"},
-    # {"name": "Description:"},
-    # {"name": "Birth Date:"},
-    # {"name": "Date of Death:"},
-    # {"name": "Date of Death:"},
-    # {"name": "Spouse:"},
-    # {"name": "Children:"}
+
+def person(text):
+    del summarybox[:]  # important, empties the info box for another search
+    del persons[:]
+
+    text1, title1 = search(text)
+    summa = summary(text1)
+
+    finalsummary = sort_info(summary(text1))
+    finalsummary.insert(0, title1)
+
+    return finalsummary
+
+# the url and function name need to match
 
 
-@app.route("/solr", defaults={"query": ""}, methods=["GET", "POST"])
-@app.route("/solr/<query>", methods=["GET", "POST"])
-def solr(query):
+@app.route("/")
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/findperson", defaults={"que": ""}, methods=["GET", "POST"])
+@app.route("/findperson/<que>", methods=["GET", "POST"])
+def findperson(que):
+    if (request.method == "POST"):
+        que = request.form["que"]
+
+        return redirect(url_for("findperson", que=que))
+
+    matches = []
+    if (que != ""):
+        for info in person(que):
+            matches.append({"name": info})
+    return render_template("findperson.html", matches=matches)
+
+
+@app.route("/findsummary", defaults={"query": ""}, methods=["GET", "POST"])
+@app.route("/findsummary/<query>", methods=["GET", "POST"])
+def findsummary(query):
     if (request.method == "POST"):
         query = request.form["query"]
 
-        return redirect(url_for("solr", query=query))
+        return redirect(url_for("findsummary", query=query))
 
     matches = []
     if (query != ""):
         for info in charsum(query):
             matches.append({"name": info})
-    return render_template("solr.html", matches=matches)
+    return render_template("findsummary.html", matches=matches)
 
 
 if __name__ == "__main__":

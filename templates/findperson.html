@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Person Summary</title>
+  </head>
+  <body>
+    <form method="POST">
+      <p><a href="{{ url_for('home') }}">Homepage</a></p> <!-- a redirect link to name of the url_for route -->
+      <input type="text" name="que">
+
+      <input type="submit" name="submit" value="Search">
+    </form>
+    <table>
+      {% for i in matches %}
+      <tr>
+        <td>{{ i["name"]}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
