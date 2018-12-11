@@ -11,7 +11,7 @@ given English Wikipedia article.
 
  To run the program, you can start by installing, configuring and running Solr. 
  Download a suitable English Wikipedia dump, and make sure to index it. Solr is expected to be
- running in port 5004. The program imports spaCy, which also needs to be installed.
+ running in port 8985. The program imports spaCy, which also needs to be installed.
 
  The search functionalities can be accessed through a web application running on Flask. 
  To install and configure Flask, you can follow the instructions provided by Mikko Aulamo 
