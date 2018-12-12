@@ -10,8 +10,8 @@ given English Wikipedia article.
 # How to run the program:
 
  To run the program, you can start by installing, configuring and running Solr. 
- Download a suitable English Wikipedia dump, and make sure to index it. Solr is expected to be
- running in port 8985. The program uses spaCy, which also needs to be installed.
+ Download a suitable English Wikipedia dump from https://dumps.wikimedia.org/enwiki/20181020/, and make sure to index it. 
+ Solr is expected to be running in port 8985. The program uses spaCy, which also needs to be installed.
 
  The search functionalities can be accessed through a web application running on Flask. 
  To install and configure Flask, you can follow the instructions provided by Mikko Aulamo 
