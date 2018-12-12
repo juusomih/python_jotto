@@ -7,9 +7,11 @@ import spacy
 from collections import Counter
 app = Flask(__name__)
 
+sumsum = 3
 ender = True
 summarybox = []
 persons = []
+error = ["Couldn't find anything useful"]
 
 nlp = spacy.load('en_core_web_sm')
 app = Flask(__name__)
@@ -35,6 +37,19 @@ def search(text):
 
     connection = urlopen('http://localhost:8985/solr/wiki/select?q=text:(' +
                          addplus(text) + ')&wt=python&start=0&rows=1')
+    response = eval(connection.read())
+
+    for i, document in enumerate(response['response']['docs']):
+        fulltext = document['text']
+        title = document["title"]
+
+    return fulltext, title
+
+
+def searchtitle(text):
+
+    connection = urlopen('http://localhost:8985/solr/wiki/select?q=title:('
+                         + addplus(text) + ')&q=text(' + addplus(text) + ')&wt=python&start=0&rows=1')
     response = eval(connection.read())
 
     for i, document in enumerate(response['response']['docs']):
@@ -88,13 +103,18 @@ def get_important_person(personsdict):
 
     sorted_by_value = sorted(personsdict.items(), key=lambda kv: kv[1])
     sorted_by_value.reverse()
-    person = sorted_by_value[0]
-    return person[0]
+    # <---- currently needs to match with main function search times
+    for key, value in sorted_by_value[:1]:
+        persons.append(key)
+    # person = sorted_by_value[0] only one person uncomment if multiple person doesn't work
+    return persons
 
 
-def sort_info(fullsummary):  # Goes through the summary info and parses out wanted information
+# Goes through the summary info and parses out wanted information
+def sort_info(fullsummary, title):
 
     try:
+        summarybox.append(title)
         description = re.findall(
             r"{{short description.*}}", fullsummary, flags=re.I)
         is_none(description[0])
@@ -134,14 +154,14 @@ def sort_info(fullsummary):  # Goes through the summary info and parses out want
 
 def fix_info(stringtofix):
     stringtofix = re.sub(r"{|}", "", stringtofix)
-    #stringtofix = re.sub(r"}", "", stringtofix)
+    # stringtofix = re.sub(r"}", "", stringtofix)
     stringtofix = re.sub(r"(^\| )", "", stringtofix)
     stringtofix = re.sub(r"\|", " ", stringtofix)
     stringtofix = re.sub(r"(\[|\]*)", "", stringtofix)
-    #stringtofix = re.sub(r"\]", "", stringtofix)
+    # stringtofix = re.sub(r"\]", "", stringtofix)
     stringtofix = re.sub(r"<.*>", " ", stringtofix)
-    #stringtofix = re.sub(r"</br>", " ", stringtofix)
-    #stringtofix = re.sub(r"<br/>", " ", stringtofix)
+    # stringtofix = re.sub(r"</br>", " ", stringtofix)
+    # stringtofix = re.sub(r"<br/>", " ", stringtofix)
     stringtofix = re.sub(r" +", " ", stringtofix)
     stringtofix = re.sub(r"^ +", "", stringtofix)
     stringtofix = re.sub(r"</ref", "", stringtofix)
@@ -158,55 +178,64 @@ def is_none(teststring):
 
 
 def charsum(text):
-
     del summarybox[:]  # important, empties the info box for another search
     del persons[:]
-    # try:
-    search1, title1 = search(text)
-    summa = summary(search1)  # the summarybox part
-    actualtext = text_text(search1)  # the formated text part
+    try:
+        search1, title1 = search(text)
+        actualtext = text_text(search1)  # the formated text part
 
-    # name = name_counter(actualtext)
-    # imp_person = get_important_person(name)
-    # search2, title2 = search(imp_person)
-    # summa = summary(search2)
-    # finalsummary = sort_info(summa)
+        # name = name_counter(actualtext)
+        # imp_person = get_important_person(name)
+        # search2, title2 = search(imp_person)
+        # summa = summary(search2)
+        # finalsummary = sort_info(summa)
 
-    # second search is excecuted according to the name found in the text of the first search
-    # gives a summary of important stuff in a table format and the title of the wikipedia article the info was taken from
-    search2, title2 = (
-        search(get_important_person(name_counter(actualtext))))
-    finalsummary = sort_info(summary(search2))
-    finalsummary.insert(0, title2)
+        # second search is excecuted according to the name found in the text of the first search
+        # gives a summary of important stuff in a table format and the title of the wikipedia article the info was taken from
 
-    return finalsummary
+        # Using searchtitle here seems to give bad results
+        search2, title2 = (
+            search(get_important_person(name_counter(actualtext))[0]))
+        finalsummary = sort_info(summary(search2), title2)
 
-    # except IndexError:
-    # return "Couldn't find anything useful"
+        search3, title3 = (
+            search(get_important_person(name_counter(actualtext))[1]))
+        finalsummary = sort_info(summary(search3), title3)
+
+        return finalsummary
+
+    except IndexError:
+        return error
+    except UnboundLocalError:
+        return error
 
 
 def person(text):
-    del summarybox[:]  # important, empties the info box for another search
-    del persons[:]
+    try:
 
-    text1, title1 = search(text)
-    summa = summary(text1)
+        del summarybox[:]  # important, empties the info box for another search
+        del persons[:]
 
-    finalsummary = sort_info(summary(text1))
-    finalsummary.insert(0, title1)
+        text1, title1 = searchtitle(text)
 
-    return finalsummary
+        finalsummary = sort_info(summary(text1), title1)
+        # finalsummary.insert(0, title1)
 
+        return finalsummary
+    except IndexError:
+        return error
+    except UnboundLocalError:
+        return error
 # the url and function name need to match
 
 
 @app.route("/")
-@app.route("/home")
+@app.route("/home/")
 def home():
     return render_template("home.html")
 
 
-@app.route("/findperson", defaults={"que": ""}, methods=["GET", "POST"])
+@app.route("/findperson/", defaults={"que": ""}, methods=["GET", "POST"])
 @app.route("/findperson/<que>", methods=["GET", "POST"])
 def findperson(que):
     if (request.method == "POST"):
@@ -221,7 +250,7 @@ def findperson(que):
     return render_template("findperson.html", matches=matches)
 
 
-@app.route("/findsummary", defaults={"query": ""}, methods=["GET", "POST"])
+@app.route("/findsummary/", defaults={"query": ""}, methods=["GET", "POST"])
 @app.route("/findsummary/<query>", methods=["GET", "POST"])
 def findsummary(query):
     if (request.method == "POST"):
