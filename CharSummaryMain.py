@@ -7,7 +7,7 @@ import spacy
 from collections import Counter
 app = Flask(__name__)
 
-sumsum = 3
+
 ender = True
 summarybox = []
 persons = []
@@ -103,18 +103,13 @@ def get_important_person(personsdict):
 
     sorted_by_value = sorted(personsdict.items(), key=lambda kv: kv[1])
     sorted_by_value.reverse()
-    # <---- currently needs to match with main function search times
-    for key, value in sorted_by_value[:1]:
-        persons.append(key)
-    # person = sorted_by_value[0] only one person uncomment if multiple person doesn't work
-    return persons
+    person = sorted_by_value[0]
+    return person[0]
 
 
-# Goes through the summary info and parses out wanted information
-def sort_info(fullsummary, title):
+def sort_info(fullsummary):  # Goes through the summary info and parses out wanted information
 
     try:
-        summarybox.append(title)
         description = re.findall(
             r"{{short description.*}}", fullsummary, flags=re.I)
         is_none(description[0])
@@ -182,6 +177,7 @@ def charsum(text):
     del persons[:]
     try:
         search1, title1 = search(text)
+        summa = summary(search1)  # the summarybox part
         actualtext = text_text(search1)  # the formated text part
 
         # name = name_counter(actualtext)
@@ -192,16 +188,10 @@ def charsum(text):
 
         # second search is excecuted according to the name found in the text of the first search
         # gives a summary of important stuff in a table format and the title of the wikipedia article the info was taken from
-
-        # Using searchtitle here seems to give bad results
         search2, title2 = (
-            search(get_important_person(name_counter(actualtext))[0]))
-        finalsummary = sort_info(summary(search2), title2)
-
-        search3, title3 = (
-            search(get_important_person(name_counter(actualtext))[1]))
-        finalsummary = sort_info(summary(search3), title3)
-
+            search(get_important_person(name_counter(actualtext))))
+        finalsummary = sort_info(summary(search2))
+        finalsummary.insert(0, title2)
         return finalsummary
 
     except IndexError:
@@ -212,14 +202,14 @@ def charsum(text):
 
 def person(text):
     try:
-
         del summarybox[:]  # important, empties the info box for another search
         del persons[:]
 
-        text1, title1 = searchtitle(text)
+        text1, title1 = search(text)
+        summa = summary(text1)
 
-        finalsummary = sort_info(summary(text1), title1)
-        # finalsummary.insert(0, title1)
+        finalsummary = sort_info(summary(text1))
+        finalsummary.insert(0, title1)
 
         return finalsummary
     except IndexError:
